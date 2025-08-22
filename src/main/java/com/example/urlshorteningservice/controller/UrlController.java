@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/shorten")
@@ -28,12 +29,16 @@ public class UrlController {
 
     @GetMapping("/{shortCode}")
     public ResponseEntity <?> getOriginalUrl (@PathVariable String shortCode) {
-        return this.service.getUrlByShortCode (shortCode)
-                .<ResponseEntity <?>> map (url -> {
-                    this.service.incrementAccessCount (url);
-                    return ResponseEntity.ok (url);
-                })
-                .orElseGet (() -> ResponseEntity.status (404).body (Map.of ("error", "Invalid short code")));
+        Optional <Url> urlOptioonal = this.service.getUrlByShortCode (shortCode);
+
+        if (urlOptioonal.isPresent ()) {
+            Url url = urlOptioonal.get();
+            this.service.incrementAccessCount (url);
+            Url urlObject = this.service.getUrlByShortCode (shortCode).get ();
+            return ResponseEntity.ok (urlObject);
+        } else {
+            return ResponseEntity.status (404).body (Map.of ("error", "Invalid short code"));
+        }
     }
 
     @PutMapping("/{shortCode}")

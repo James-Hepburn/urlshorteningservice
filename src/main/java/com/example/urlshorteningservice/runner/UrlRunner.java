@@ -12,10 +12,10 @@ import java.util.Scanner;
 @Component
 public class UrlRunner implements CommandLineRunner {
     private UrlService service;
-    private Scanner input = new Scanner (System.in);
 
     @Override
     public void run (String... args) {
+        Scanner input = new Scanner (System.in);
         System.out.println ("URL Shortening Service!");
 
         while (true) {
@@ -36,7 +36,10 @@ public class UrlRunner implements CommandLineRunner {
                 String shortCode = input.nextLine ();
 
                 this.service.getUrlByShortCode (shortCode).ifPresentOrElse
-                        (u -> System.out.println ("Original URL: " + u.getUrl ()),
+                        (u -> {
+                            this.service.incrementAccessCount (u);
+                            System.out.println ("Original URL: " + u.getUrl ());
+                        },
                         () -> System.out.println ("Not found"));
             }
 
